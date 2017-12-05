@@ -1,5 +1,5 @@
 #rewrite code is necessary if you want to achieve a better performance. for test, to finish it is more important.
-from lib import *
+from environment import *
 import time
 
 num_episode = 1000000

@@ -1,5 +1,5 @@
 import pickle,random
-from lib import Policy,Step,mse,State
+from environment import Policy,Step,mse,State
 import numpy as np
 
 GAMMA = 1.0
@@ -13,7 +13,7 @@ def Sarsa_lamda_Control(lmbd,opt_value,num_episodes):
     totalreward = 0
     error_history = []
 
-    for episode in range(1,num_episodes):
+    for episode in range(1,num_episodes+1):
         # initialize env
         state1 = State()
         state1.dealercard = random.randint(1,10)

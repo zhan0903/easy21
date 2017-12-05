@@ -1,6 +1,6 @@
 from agents.sarsa import *
 from agents.lfa import *
-from lib import State,plot_learning_curve
+from environment import State,plot_learning_curve
 import random,time
 import argparse
 
@@ -56,6 +56,30 @@ def Sarsa():
     plot_learning_curve(learning_curves, save=plot_file)
 
 def Lfa():
+    lmbd = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+    #lmbd = [0.1]
+    learning_curves = {}
+    state1 = State()
+    num_episodes = 20000
+    #num_episodes = 2000
+
+    with open("./Q_dump_episodes_1000000.pkl", "rb") as f:
+        opt_value = pickle.load(f)
+
+    for item in lmbd:
+        #print("in main, item:",item)
+        state1.dealercard = random.randint(1,10)
+        state1.playersum = random.randint(1,10)
+        #print("state in main:",state1.dealercard,state1.playersum)
+        Q_value,error_history = lfa_learn(item,opt_value,num_episodes)
+        #print("out once")
+        learning_curves[item] = error_history
+        #print("learning_curves:",learning_curves)
+
+
+    plot_file = ("./outcome/lfa_error_{}_episodes_time_{}.pdf".format(20000,time.time()))
+    plot_learning_curve(learning_curves, save=plot_file)
+    #plot_learning_curve(learning_curves)
 
 
 
@@ -66,9 +90,8 @@ def main(agrs):
 
     if agent_type == "sarsa":
         Sarsa()
-    elif agent_type == "fa":
-        #FA()
-        pass
+    elif agent_type == "lfa":
+        Lfa()
     else:
         #MC()
         pass

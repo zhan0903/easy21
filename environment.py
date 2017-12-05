@@ -10,6 +10,7 @@ import pickle
 
 DEALER_RANGE = range(1, 11)
 PLAYER_RANGE = range(1, 22)
+ACTIONS = (HIT, STICK) = (0, 1)
 
 class State:
     dealercard = random.randint(1,10)
