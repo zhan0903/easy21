@@ -1,6 +1,7 @@
 from agents.sarsa import *
 from agents.lfa import *
 from agents.mc import *
+from agents.dqn2 import *
 from environment import State,plot_learning_curve,plot_V
 import random,time
 import argparse
@@ -60,7 +61,7 @@ def Lfa():
     lmbd = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
     learning_curves = {}
     state1 = State()
-    num_episodes = 20000
+    num_episodes = 2000
 
     with open("./Q_dump_episodes_1000000.pkl", "rb") as f:
         opt_value = pickle.load(f)
@@ -94,6 +95,10 @@ def Mc():
 
     plot_V(Q_value,save=plot_file)
     #dump_Q(Q_value,num_episode)
+
+def dqn():
+    dqn_control()
+
 
 
 def main(agrs):

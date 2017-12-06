@@ -1,3 +1,5 @@
+# implement the deep Q-learning networks algorithm
+
 import pickle,random
 from environment import (
 Step,mse,State,ACTIONS,
@@ -75,13 +77,40 @@ def policy(state,w):
 
     return Qhat, action
 
-def lfa_learn(lmbd,opt_value,num_episodes):
+def store_e(e,D):
+#store experiences
+    if D.length >= N:
+        index = random.randint(0,N-1)
+        D[index] = e
+    else:
+        D.append(e)
+
+    return D
+
+def policy(Q_value,state,greedy=False):
+    if !greedy:
+        epsilon = 100.0 / (100.0 + np.sum(counter[state.dealercard-1, state.playersum-1,:],axis=0))
+        #the possibility to choose random
+        if (random.random() < epsilon):
+            action = random.randint(0,1)
+        else:#greedy choose
+            action = np.argmax(value[state.dealercard-1, state.playersum-1,:])
+        return action
+
+    action = np.argmax(value[state.dealercard-1, state.playersum-1,:])
+    return value[state.dealercard-1, state.playersum-1,action]
+
+
+
+
+def dqn_learn(opt_value,num_episodes):
     #initialize
     Q = np.zeros((10,21,2))
     counter = np.zeros((10,21,2))
     totalreward = 0
     error_history = []
     w  = (np.random.rand(*FEATS_SHAPE) - 0.5) * 0.001
+    D = []
 
     for episode in range(1,num_episodes+1):
         # initialize env
@@ -92,11 +121,24 @@ def lfa_learn(lmbd,opt_value,num_episodes):
         E = np.zeros_like(w)
 
         while state1 != "terminal":
-            Qhat1, action1 = policy(state1,w)
+            action1 = Epsilon_greedy_policy(Q,counter,state1）
+            #Qhat1, action1 = policy(state1,w)
             state2, reward = Step(state1,action1)
-            Qhat2, action2 = policy(state2,w)
+            #Qhat2, action2 = policy(state2,w)
+            e = (state1,action1,reward,state2)
+            D = store_e(e,D)
 
-            feats1 = phi(state1, action1)
+            index = random.randint(0,N-1)
+            e = D[index]
+            if e[3] is "terminal":
+                y = e[2]
+            else:
+                y = e[2]+GAMMA*policy(Q,e[3],True)
+
+
+
+
+
             grad_w_Qhat1 = feats1
 
             delta = reward + GAMMA * Qhat2 - Qhat1

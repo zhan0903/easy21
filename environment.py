@@ -120,7 +120,7 @@ def Step(state,action):
             return "terminal", 0.0
 
 # Base on epsilon-policy,number of action and Q value table, return the action.
-def Policy(value,counter,state):
+def Epsilon_greedy_policy(value,counter,state):
     #get the time-varying epsilon, N_0 = 100.0
     #print("state in Policy:",state.dealercard-1,state.playersum-1)
     epsilon = 100.0 / (100.0 + np.sum(counter[state.dealercard-1, state.playersum-1,:],axis=0))
@@ -144,7 +144,7 @@ def Generate_epsiode(value,counter):
 
     while state != "terminal":
         #print("state in Generate_epsiode:",state.dealercard-1,state.playersum-1)
-        action = Policy(value,counter,state)
+        action = Epsilon_greedy_policy(value,counter,state)
         counter[state.dealercard-1, state.playersum-1,action] += 1
         epsiode.append((state.dealercard, state.playersum,action))
         state,reward= Step(state,action)
