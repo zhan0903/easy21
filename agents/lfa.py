@@ -82,8 +82,6 @@ def lfa_learn(lmbd,opt_value,num_episodes):
     error_history = []
     w  = (np.random.rand(*FEATS_SHAPE) - 0.5) * 0.001
 
-    #print("in lfa")
-
     for episode in range(1,num_episodes+1):
         # initialize env
         state1 = State()
@@ -91,8 +89,6 @@ def lfa_learn(lmbd,opt_value,num_episodes):
         state1.playersum = random.randint(1,10)
         #state1 = (state1.dealercard,state1.playersum)
         E = np.zeros_like(w)
-
-        #print("episode,num_episodes",episode,num_episodes)
 
         while state1 != "terminal":
             Qhat1, action1 = policy(state1,w)
@@ -112,7 +108,5 @@ def lfa_learn(lmbd,opt_value,num_episodes):
             Q = expand_Q(w)
             #print("in lfa while")
             error_history.append((episode, mse(Q,opt_value)))
-
-    #print("out in lfa")
 
     return Q,error_history
