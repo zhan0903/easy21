@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser(
   description="Simple Reinforcement Learning")
-parser.add_argument("-a", "--agent", default="mc",
+parser.add_argument("-a", "--agent",
                     choices=['mc', 'sarsa', 'lfa', 'pg'],
                     help=("Agent Type: "
                           "mc (monte carlo), "
@@ -81,7 +81,37 @@ def Lfa():
     plot_learning_curve(learning_curves, save=plot_file)
     #plot_learning_curve(learning_curves)
 
+def Mc():
+    #initialize
+    # value[action][dealercard][playersum] is the value function, table lookup should work with so little states
+    #value = np.zeros((2,11,22))
+    num_episodes = 1000000
+    value = np.zeros((10,21,2))
+    counter = np.zeros((10,21,2))
+    totalreward = 0
 
+    #main logic
+    for i in range(1,num_episodes+1):
+        #1 generate a epsiode using policy pi
+        epsiode,totalreward = Generate_epsiode(value,counter)
+        #2 update the value function based on the generated epsiode
+        #Incremental Implementation
+        for dealercard, playersum,action in epsiode:
+            #a means step
+            idx = dealercard-1, playersum-1, action
+            #counter[idx] += 1
+            a = 1.0 / counter[idx]
+            g = totalreward
+            value[idx] = value[idx] + a*(g - value[idx])
+
+    #4 plot the final value_function
+    # plot monte-carlo value func
+    plot_file = ("./outcome/V_MC_{}_episodes_time_{}.pdf".format(num_episode,time.time()))
+
+    #plot_file = ("./outcome/V_MC_{}_episodes3.pdf".format(num_episode))
+
+    plot_V(value,save=plot_file)
+    #dump_Q(Q_value,num_episode)
 
 
 def main(agrs):
@@ -92,12 +122,10 @@ def main(agrs):
         Sarsa()
     elif agent_type == "lfa":
         Lfa()
+    elif agent_type == "mc":
+        Mc()
     else:
-        #MC()
-        pass
-
-
-
+        print("please choose the agent type. use -a [type]")
 
 if __name__ == "__main__":
   args = parser.parse_args()
