@@ -1,7 +1,7 @@
 from agents.sarsa import *
 from agents.lfa import *
 from agents.mc import *
-from agents.dqn2 import *
+from agents.dqn3 import *
 from environment import State,plot_learning_curve,plot_V
 import random,time
 import argparse
@@ -9,7 +9,7 @@ import argparse
 parser = argparse.ArgumentParser(
   description="Simple Reinforcement Learning")
 parser.add_argument("-a", "--agent",
-                    choices=['mc', 'sarsa', 'lfa', 'pg'],
+                    choices=['mc', 'sarsa', 'lfa', 'pg','dqn'],
                     help=("Agent Type: "
                           "mc (monte carlo), "
                           "sarsa, "
@@ -97,7 +97,15 @@ def Mc():
     #dump_Q(Q_value,num_episode)
 
 def dqn():
-    dqn_control()
+    num_episodes = 100000
+    Q_value = dqn_control(num_episodes)
+
+    plot_file = ("./outcome/V_dqn_{}_episodes_time_{}.pdf".format(num_episodes,time.time()))
+
+    #plot_file = ("./outcome/V_MC_{}_episodes3.pdf".format(num_episode))
+
+    plot_V(Q_value,save=plot_file)
+    #dump_Q(Q_value,num_episode)
 
 
 
@@ -111,6 +119,8 @@ def main(agrs):
         Lfa()
     elif agent_type == "mc":
         Mc()
+    elif agent_type == "dqn":
+        dqn()
     else:
         print("please choose the agent type. use -a [type]")
 

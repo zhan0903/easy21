@@ -57,9 +57,9 @@ class Easy21Env:
 
   def reset(self, dealer=None, player=None):
     if dealer is None: dealer = draw_card()['value']
-    self.dealer = dealer
+        self.dealer = dealer
     if player is None: player = draw_card()['value']
-    self.player = player
+        self.player = player
 
 
   def observe(self):
@@ -88,7 +88,7 @@ class Easy21Env:
         next_state, reward = TERMINAL_STATE, -1
       else:
         next_state, reward = (self.dealer, self.player), 0
-    elif action == STICK:
+      elif action == STICK:
       while 0 < self.dealer < 17:
         card = draw_card()
         self.dealer += COLOR_COEFFS[card['color']] * card['value']
