@@ -1,2 +1,5 @@
 __pycache__
 outcome/
+.idea/
+save.p
+agents/pg_copy.py

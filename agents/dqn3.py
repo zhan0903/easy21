@@ -12,7 +12,7 @@ GAMMA = 0.8 # discount factor for target Q
 INITIAL_EPSILON = 0.5 # starting value of epsilon
 FINAL_EPSILON = 0.01 # final value of epsilon
 REPLAY_SIZE = 10000 # experience replay buffer size
-BATCH_SIZE = 4 # size of minibatch
+BATCH_SIZE = 32 # size of minibatch
 STATE_DIM = 2
 ACTION_DIM = 2
 
@@ -78,7 +78,7 @@ class DQN():
         # self.create_Q_network()
         # self.create_training_method()
 
-    def layer_sizes(self,n_x=2,n_h=4,n_y=2):
+    def layer_sizes(self,n_x=2,n_h=20,n_y=2):
         return n_x,n_h,n_y
 
     def initialize_parameters(self):
@@ -120,24 +120,23 @@ class DQN():
         W2 = parameters["W2"]
         b2 = parameters["b2"]
 
-        X = np.array(X)
-
         # Implement Forward Propagation to calculate A2 (probabilities)
         #print("X shape in forward_propagation:",X.shape)
-        #print("W1 shape in forward_propagation:",W1.shape)
+        #print("in forward_propagation,W1 X shape:",W1.shape,X.shape)
 
-        Z1 = np.dot(W1,X.T)+b1
-        print("in forward_propagation,")
+        X = np.array(X)
+
+        Z1 = np.dot(W1,X)+b1
         A1 = np.tanh(Z1)
         Z2 = np.dot(W2,A1)+b2
         A2 = sigmoid(Z2)
-        print("in forward_propagation,Z1,A1,Z2,A2,shape",Z1.shape,A1.shape,Z2.shape,A2.shape)
+        #print("in forward_propagation,Z1,A1,Z2,A2,shape",Z1.shape,A1.shape,Z2.shape,A2.shape)
 
         #print("A2.shape",A2.shape)
         #print("X.shape[1]",X.shape[1])
 
 
-        #assert(A2.T.shape == (1, X.shape[1]))
+        assert(A2.shape == (2, X.shape[1]))
 
         cache = {"Z1": Z1,
                  "A1": A1,
@@ -178,7 +177,7 @@ class DQN():
 
         return cost
 
-    def backward_propagation(self,parameters, cache, X, Y,action_batch):
+    def backward_propagation(self,parameters, cache, X, Y):
         """
         Implement the backward propagation using the instructions above.
         Arguments:
@@ -199,18 +198,16 @@ class DQN():
         A2 = cache["A2"]
 
         # Backward propagation: calculate dW1, db1, dW2, db2.
-        print("in backward_propagation, A2",A2)
-        print("in backward_propagation, Y",Y)
-        A2_value = np.multiply(action_batch,A2.T)
-        print("in backward_propagation, A2_value",A2_value)
-        dZ2= A2_value-Y
+        #print("in backward_propagation, X.shape,Y.shape",X.shape,Y.shape)
+        #A2_value = np.multiply(action_batch,A2.T)
+        #print("in backward_propagation, A2_value",A2_value)
+        dZ2= A2-Y
         dW2 = (1/BATCH_SIZE)*np.dot(dZ2,A1.T)
-        print("in backward_propagation, dZ2",dZ2)
-        db2 = (1/BATCH_SIZE)*np.sum(dZ2,keepdims=True)
-        print("in backward_propagation, A1",A1)
-        print("in backward_propagation, W2.T",W2.T)
+        #print("in backward_propagation, dZ2 dW2 shape",dZ2.shape,dW2.shape)
+        db2 = (1/BATCH_SIZE)*np.sum(dZ2,axis=1,keepdims=True)
+        #print("in backward_propagation, db2.shaoe",db2.shape)
         dZ1 = np.dot(W2.T,dZ2)*(1 - np.power(A1, 2))
-        print("in backward_propagation, dZ1",dZ1)
+        #print("in backward_propagation, dZ1.shape",dZ1.shape)
         dW1 = (1/BATCH_SIZE)*np.dot(dZ1,X.T)
         db1 = (1/BATCH_SIZE)*np.sum(dZ1,axis=1,keepdims=True)
 
@@ -258,11 +255,13 @@ class DQN():
 
         return parameters
 
-    def nn_model(self, episode):
+
+    #later change all to column vectors.
+    def nn_model(self, episodes):
         """
         Arguments:
         X -- dataset of shape (2, number of examples)
-        Y -- labels of shape (1, number of examples)
+        Y -- labels of shape (2, number of examples)
         n_h -- size of the hidden layer
         num_iterations -- Number of iterations in gradient descent loop
         print_cost -- if True, print the cost every 1000 iterations
@@ -272,81 +271,55 @@ class DQN():
         ct.
         """
         np.random.seed(3)
-        # n_x = layer_sizes(X, Y)[0]
-        # n_y = layer_sizes(X, Y)[2]
 
         minibatch = random.sample(self.replay_buffer,BATCH_SIZE)
-        state_batch = [(data[0].dealercard,data[0].playersum) for data in minibatch]
-        action_batch = [data[1] for data in minibatch]
+        #state_batch = np.zeros(shape=)
+        state_batch = np.array([(data[0].dealercard,data[0].playersum) for data in minibatch])
+        action_batch = np.array([data[1] for data in minibatch])
         reward_batch = [data[2] for data in minibatch]
-        next_state_batch = []
-        for data in minibatch:
+
+        next_state_batch = np.zeros(shape=(BATCH_SIZE,2))
+        for index,data in enumerate(minibatch):
             if data[3] == "terminal":
-                #next_state_batch.append(data[3])
-                next_state_batch.append((0,0))
+                next_state_batch[index] = [0,0]
             else:
-                next_state_batch.append((data[3].dealercard,data[3].playersum))
+                next_state_batch[index] = [data[3].dealercard,data[3].playersum]
 
-        y_batch = []
-
-        # print("next_state_batch shape:",np.array(next_state_batch).shape)
-        # print("next_state_batch:",np.array(next_state_batch))
-        # print("next_state_batch original:",next_state_batch)
-
+        y_batch = np.zeros(shape=(BATCH_SIZE,2))
         Q_next_value_batch = self.Q_value(next_state_batch)
-
-        # print("Q_value_batch shape:",Q_value_batch.shape)
-        # print("Q_value_batch:",Q_value_batch)
-        # print("Q_value_batch.T:",Q_value_batch.T)
-        # print("reward_batch:",reward_batch)
-
-
-
-        # for i in range(0,BATCH_SIZE):
-        #     done = next_state_batch[i]
-        #     if done == (0,0):
-        #         y_batch.append(reward_batch[i])
-        #     else :
-        #         y_batch.append(reward_batch[i] + GAMMA * np.max(Q_next_value_batch.T[i]))
-
-
-        #print("y_batch:",y_batch)
-        # print("y_batch shape:",np.array(y_batch).shape)
-        print("action_batch in nn_model:",action_batch)
-        
         parameters = self.parameters
-
-        X = np.array(state_batch)
+        X = state_batch
 
         # Forward propagation. Inputs: "X, parameters". Outputs: "A2, cache".
-        A2, cache = self.forward_propagation(X, parameters)
+        A2, cache = self.forward_propagation(X.T, parameters)
 
-        # print("A2 shape",A2.shape)
+        # print("in nn_model,reward_batch",reward_batch)
+        # print("in nn_model,action_batch",action_batch)
+
+        #print("A2 in nn_model",A2)
         for i in range(0,BATCH_SIZE):
             done = next_state_batch[i]
             action_index = np.argmax(action_batch[i])
-            print("index:in nn_model:",index)
-            y = np.zeros(self.action_dim)
-            if done == (0,0):
-                y[action_index] = reward_batch[i]
+            #print("in nn_model,y_batch[i],y_batch[i][action_index],reward_batch[i]",y_batch[i],y_batch[i][action_index],reward_batch[i])
+            if np.array_equal(done,[0,0]):
+                y_batch[i][action_index] = reward_batch[i]
             else :
-                y[action_index] = reward_batch[i] + GAMMA * np.max(Q_next_value_batch.T[i])
+                y_batch[i][action_index] = reward_batch[i] + GAMMA * np.max(Q_next_value_batch.T[i])
 
-            y[1-action_index] = A2[1-action_index]
-            y_batch.append(y)
+            y_batch[i][1-action_index] = A2.T[i][1-action_index]
 
-        X = np.array(state_batch)
-        Y = np.array(y_batch)
+        Y = y_batch
+        #print("in nn_model,shape of A2,X,Y,",A2.shape,X.shape,Y.shape)
 
         # Cost function. Inputs: "A2, Y, parameters". Outputs: "cost".
-        cost = self.compute_cost(A2, Y)
+        cost = self.compute_cost(A2, Y.T)
         # Backpropagation. Inputs: "parameters, cache, X, Y". Outputs: "grads".
-        grads = self.backward_propagation(parameters, cache, X, Y,action_batch)
+        grads = self.backward_propagation(parameters, cache, X.T, Y.T)
         # Gradient descent parameter update. Inputs: "parameters, grads". Outputs: "parameters".
         self.update_parameters(parameters,grads)
 
-        if  num_iterations % 1000 == 0:
-            print ("Cost after iteration %i: %f" %(i, cost))
+        if  episodes % 1000 == 0:
+            print ("Cost after iteration %i: %f" %(episodes, cost))
 
 
     def Q_value(self,state):
@@ -360,10 +333,13 @@ class DQN():
         """
         # Computes probabilities using forward propagation, and classifies to 0/1 using 0.5 as the threshold.
         ### START CODE HERE ### (≈ 2 lines of code)
-        if isinstance(state, list):
-            A2, cache = self.forward_propagation(state, self.parameters)
+        if isinstance(state, State):
+            #print("in Q_value 0, type of state:",type(state))
+            state_tmp = np.array([[state.dealercard,state.playersum]]).T
+            A2, cache = self.forward_propagation(state_tmp, self.parameters)
         else:
-            A2, cache = self.forward_propagation([(state.dealercard,state.playersum)], self.parameters)
+            #print("in Q_value 1, type of state:",type(state))
+            A2, cache = self.forward_propagation(state.T, self.parameters)
         #print(A2)
         ### END CODE HERE ###
         return A2

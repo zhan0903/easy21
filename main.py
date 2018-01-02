@@ -2,6 +2,7 @@ from agents.sarsa import *
 from agents.lfa import *
 from agents.mc import *
 from agents.dqn3 import *
+from agents.pg import *
 from environment import State,plot_learning_curve,plot_V
 import random,time
 import argparse
@@ -100,12 +101,22 @@ def dqn():
     num_episodes = 100000
     Q_value = dqn_control(num_episodes)
 
-    plot_file = ("./outcome/V_dqn_{}_episodes_time_{}.pdf".format(num_episodes,time.time()))
+    plot_file = ("./outcome/dqn/V_dqn_{}_episodes_time_{}.pdf".format(num_episodes,time.time()))
 
     #plot_file = ("./outcome/V_MC_{}_episodes3.pdf".format(num_episode))
 
     plot_V(Q_value,save=plot_file)
     #dump_Q(Q_value,num_episode)
+
+def pg():
+    num_episodes = 10000000
+    Q_value = pg_control(num_episodes)
+
+    plot_file = ("./outcome/pg/V_pg_{}_episodes_time_{}.pdf".format(num_episodes,time.time()))
+
+    #plot_file = ("./outcome/V_MC_{}_episodes3.pdf".format(num_episode))
+
+    #plot_V(Q_value,save=plot_file)
 
 
 
@@ -121,6 +132,8 @@ def main(agrs):
         Mc()
     elif agent_type == "dqn":
         dqn()
+    elif agent_type == "pg":
+        pg()
     else:
         print("please choose the agent type. use -a [type]")
 
